@@ -1,0 +1,16 @@
+.cache
+.DS_Store
+.env
+.nyc_output
+.vscode/
+*.log
+*.min.js
+coverage
+dist
+logs
+node_modules
+npm-debug.log*
+package-lock.json
+tmp
+yarn-debug.log*
+yarn-error.log*
