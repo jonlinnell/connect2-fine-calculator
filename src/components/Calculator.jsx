@@ -3,6 +3,9 @@ import parse from 'csv-parse';
 import moment from 'moment-business-days';
 
 import fines from '../misc/fines.json';
+import { c2Instance } from '../misc/settings.json';
+
+if (!c2Instance) throw new Error('`c2Instance` is not defined in settings.json.');
 
 moment.locale('en-GB');
 
@@ -90,7 +93,7 @@ const Calculator = () => {
               <tr key={`${loan['Ref no']}-${loan['Resource Barcode']}`}>
                 <td>
                   <a
-                    href={`https://lborolondon.getconnect2.com/bookings/view.aspx?id=${loan[
+                    href={`${c2Instance}bookings/view.aspx?id=${loan[
                       'Ref no'
                     ].slice(-6)}`}
                   >
