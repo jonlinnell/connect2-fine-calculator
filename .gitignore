@@ -14,3 +14,6 @@ package-lock.json
 tmp
 yarn-debug.log*
 yarn-error.log*
+
+settings.json
+fines.json
