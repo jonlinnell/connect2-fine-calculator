@@ -7,8 +7,8 @@ import Calculator from '../components/Calculator';
 
 const Home = () => (
   <FullPageSection>
-    <SectionTitle noYMargin>Late fee calculator</SectionTitle>
-    <p>Drag and drop a CSV report from Connect2 below to begin.</p>
+    <SectionTitle>Late fee calculator</SectionTitle>
+    <p>Upload a CSV report from Connect2 below to begin.</p>
     <Calculator />
   </FullPageSection>
 );

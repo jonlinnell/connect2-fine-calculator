@@ -9,9 +9,13 @@ if (!c2Instance) throw new Error('`c2Instance` is not defined in settings.json.'
 
 moment.locale('en-GB');
 
-const tableStyles = { maxHeight: '1000px', width: '90vw', overflow: 'scroll', margin: '1rem' };
+const tableContainerStyles = {
+  width: '100%',
+  overflow: 'scroll',
+  padding: '1rem',
+};
 
-const formatDate = date => moment(date).format('LLL');
+const formatDate = date => moment(date).format('L HH:mm');
 
 const Calculator = () => {
   const [overdueLoans, setOverdueLoans] = useState([]);
@@ -72,8 +76,11 @@ const Calculator = () => {
           {overdueLoans.length} of {totalRecords} items overdue.
         </p>
       ) : null}
-      <div style={tableStyles}>
-        <table className="pure-table" style={{ width: '100%' }}>
+      <div style={tableContainerStyles}>
+        <table
+          className="pure-table pure-table-striped"
+          style={{ width: '100%', textAlign: 'left' }}
+        >
           <thead>
             <tr>
               <th>Booking reference</th>
@@ -81,10 +88,10 @@ const Calculator = () => {
               <th>Student number</th>
               <th>Email</th>
               <th>Resource</th>
-              <th>Scheduled return date</th>
-              <th>Check in date</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Due date</th>
+              <th style={{ whiteSpace: 'nowrap' }}>Check in date</th>
               <th>Days overdue</th>
-              <th>Fine rate</th>
+              <th>Daily rate</th>
               <th>Fine</th>
             </tr>
           </thead>
@@ -92,11 +99,7 @@ const Calculator = () => {
             {overdueLoans.map(loan => (
               <tr key={`${loan['Ref no']}-${loan['Resource Barcode']}`}>
                 <td>
-                  <a
-                    href={`${c2Instance}bookings/view.aspx?id=${loan[
-                      'Ref no'
-                    ].slice(-6)}`}
-                  >
+                  <a href={`${c2Instance}bookings/view.aspx?id=${loan['Ref no'].slice(-6)}`}>
                     {loan['Ref no']}
                   </a>
                 </td>
@@ -106,7 +109,7 @@ const Calculator = () => {
                 <td>{loan.Barcode}</td>
                 <td>{loan.Email}</td>
                 <td>
-                  {loan.Barcode ? <span>({loan['Resource Barcode']})&nbsp;</span> : null}
+                  {loan.Barcode.length > 2 ? <span>({loan['Resource Barcode']})&nbsp;</span> : null}
                   {loan.Resource}
                 </td>
                 <td>{formatDate(loan['End date'])}</td>

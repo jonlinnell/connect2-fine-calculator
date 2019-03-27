@@ -9,6 +9,10 @@
     "prettier"
   ],
 
+  "rules": 
+    {"react/jsx-one-expression-per-line": "off"}
+  ,
+
   "extends": [
     "airbnb",
     "prettier"
