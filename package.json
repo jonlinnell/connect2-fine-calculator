@@ -6,7 +6,7 @@
   "scripts": {
     "start": "parcel serve src/index.html",
     "build": "parcel build src/index.html",
-    "lint": "eslint src --ext js --ext jsx"
+    "lint": "eslint --ext js --ext jsx src"
   },
   "keywords": [],
   "author": "Jon Linnell",
@@ -25,11 +25,13 @@
   },
   "dependencies": {
     "csv-parse": "^4.3.4",
+    "csv-stringify": "^5.3.0",
     "moment": "^2.24.0",
     "moment-business-days": "^1.1.3",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
-    "styled-components": "^4.2.0"
+    "styled-components": "^4.2.0",
+    "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",

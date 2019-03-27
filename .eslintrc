@@ -8,14 +8,13 @@
   "plugins": [
     "prettier"
   ],
-
-  "rules": 
-    {"react/jsx-one-expression-per-line": "off"}
-  ,
+  
+  "rules": {
+    "react/jsx-one-expression-per-line": "off"
+  },
 
   "extends": [
     "airbnb",
-    "prettier"
-
+    "plugin:prettier/recommended"
   ]
 }

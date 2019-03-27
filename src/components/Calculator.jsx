@@ -1,6 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useReducer, useEffect } from 'react';
 import parse from 'csv-parse';
+import stringify from 'csv-stringify';
 import moment from 'moment-business-days';
+import xxh from 'xxhashjs';
 
 import fines from '../misc/fines.json';
 import { c2Instance } from '../misc/settings.json';
@@ -15,11 +17,31 @@ const tableContainerStyles = {
   padding: '1rem',
 };
 
-const formatDate = date => moment(date).format('L HH:mm');
+const formatDate = date => moment(date).format('DD/MM/YYYY HH:mm');
 
 const Calculator = () => {
   const [overdueLoans, setOverdueLoans] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [csvReport, setCsvReport] = useState();
+
+  const [checked, dispatchChecked] = useReducer((state, action) => {
+    if (action.type === 'ADD') {
+      return [...new Set(state.concat(action.payload))];
+    }
+
+    if (action.type === 'REMOVE') {
+      return state.filter(row => row !== action.payload);
+    }
+
+    if (action.type === 'CLEAR') {
+      return [];
+    }
+
+    return state;
+  }, []);
+
+  const selectAll = () =>
+    dispatchChecked({ type: 'ADD', payload: overdueLoans.map(loan => loan.id) });
 
   const processOverdueRecords = useCallback(records => {
     setOverdueLoans(
@@ -30,6 +52,7 @@ const Calculator = () => {
           ).amount || 0;
 
         return {
+          id: xxh.h32(`${record['Ref no']}-${record['Resource Barcode']}`, 0xbeefbabe).toString(16),
           daysOverdue: moment(record['End date']).businessDiff(moment(record['Checked in'])),
           dailyFine,
           ...record,
@@ -37,6 +60,35 @@ const Calculator = () => {
       })
     );
   }, []);
+
+  const generateCSVOutput = useCallback(() => {
+    stringify(
+      overdueLoans
+        .filter(loan => checked.includes(loan.id))
+        .map(loan => ({
+          studentName: `${loan['First name']} ${loan.Surname}`,
+          studentNumber: loan.Barcode,
+          amount: loan.daysOverdue * loan.dailyFine,
+          bookingRef: loan['Ref no'],
+          description: `Fine for late return of equipment, booking ref: ${loan['Ref no']}`,
+        })),
+      {
+        columns: [
+          { key: 'studentName', header: 'Student name' },
+          { key: 'studentNumber', header: 'Student number' },
+          { key: 'amount', header: 'Amount' },
+          { key: 'bookingRef', header: 'Booking reference' },
+          { key: 'description', header: 'Description' },
+        ],
+        header: true,
+      },
+      (err, output) => {
+        if (err) throw new Error(err);
+
+        setCsvReport(output);
+      }
+    );
+  }, [checked]);
 
   const handleFile = useCallback(file => {
     const reader = new FileReader();
@@ -68,6 +120,24 @@ const Calculator = () => {
     reader.readAsText(file);
   }, []);
 
+  const handleCheckboxClick = id => {
+    if (checked.includes(id)) {
+      dispatchChecked({ type: 'REMOVE', payload: id });
+    } else {
+      dispatchChecked({ type: 'ADD', payload: id });
+    }
+  };
+
+  const handleMasterCheckboxClick = () => {
+    if (checked.length === overdueLoans.length) {
+      dispatchChecked({ type: 'CLEAR' });
+    } else {
+      selectAll();
+    }
+  };
+
+  useEffect(generateCSVOutput, [checked]);
+
   return (
     <div style={{ textAlign: 'center' }}>
       <input type="file" name="file" onChange={e => handleFile(e.target.files[0])} />
@@ -76,6 +146,14 @@ const Calculator = () => {
           {overdueLoans.length} of {totalRecords} items overdue.
         </p>
       ) : null}
+      {csvReport && checked.length > 0 ? (
+        <a
+          href={`data:application/octet-stream;charset=utf-8,${encodeURIComponent(csvReport)}`}
+          download={`Fines ${moment().format('LLLL')}.csv`}
+        >
+          Download report for {checked.length} entries
+        </a>
+      ) : null}
       <div style={tableContainerStyles}>
         <table
           className="pure-table pure-table-striped"
@@ -83,6 +161,13 @@ const Calculator = () => {
         >
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={overdueLoans.length > 0 ? checked.length >= overdueLoans.length : false}
+                  onChange={handleMasterCheckboxClick}
+                />
+              </th>
               <th>Booking reference</th>
               <th>Name</th>
               <th>Student number</th>
@@ -97,7 +182,14 @@ const Calculator = () => {
           </thead>
           <tbody>
             {overdueLoans.map(loan => (
-              <tr key={`${loan['Ref no']}-${loan['Resource Barcode']}`}>
+              <tr key={loan.id}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={checked.includes(loan.id)}
+                    onChange={() => handleCheckboxClick(loan.id)}
+                  />
+                </td>
                 <td>
                   <a href={`${c2Instance}bookings/view.aspx?id=${loan['Ref no'].slice(-6)}`}>
                     {loan['Ref no']}
