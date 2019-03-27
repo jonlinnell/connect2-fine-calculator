@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useReducer, useEffect } from 'react';
 import parse from 'csv-parse';
+import styled from 'styled-components';
 import stringify from 'csv-stringify';
 import moment from 'moment-business-days';
 import xxh from 'xxhashjs';
@@ -16,6 +17,25 @@ const tableContainerStyles = {
   overflow: 'scroll',
   padding: '1rem',
 };
+
+const UploadFileInput = styled.input`
+  margin-left: 32px;
+`;
+
+const UploadFileLabel = styled.label`
+  background-color: #eaeaea;
+  padding: 6px;
+  border-radius: 3px;
+  font-size: 1.1rem;
+  display: inline-block;
+`;
+
+const InlineItems = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+`;
 
 const formatDate = date => moment(date).format('DD/MM/YYYY HH:mm');
 
@@ -70,7 +90,9 @@ const Calculator = () => {
           studentNumber: loan.Barcode,
           amount: loan.daysOverdue * loan.dailyFine,
           bookingRef: loan['Ref no'],
-          description: `Fine for late return of equipment, booking ref: ${loan['Ref no']}`,
+          description: `Fine for late return of equipment (${loan.daysOverdue} day${
+            loan.daysOverdue > 1 ? 's' : ''
+          } overdue). Booking ref: ${loan['Ref no']}`,
         })),
       {
         columns: [
@@ -140,20 +162,26 @@ const Calculator = () => {
 
   return (
     <div style={{ textAlign: 'center' }}>
-      <input type="file" name="file" onChange={e => handleFile(e.target.files[0])} />
-      {overdueLoans.length ? (
-        <p>
-          {overdueLoans.length} of {totalRecords} items overdue.
-        </p>
-      ) : null}
-      {csvReport && checked.length > 0 ? (
-        <a
-          href={`data:application/octet-stream;charset=utf-8,${encodeURIComponent(csvReport)}`}
-          download={`Fines ${moment().format('LLLL')}.csv`}
-        >
-          Download report for {checked.length} entries
-        </a>
-      ) : null}
+      <UploadFileLabel htmlFor="file">
+        Upload a CSV report from Connect2 below to begin.
+        <UploadFileInput type="file" name="file" onChange={e => handleFile(e.target.files[0])} />
+      </UploadFileLabel>
+      <InlineItems>
+        {overdueLoans.length ? (
+          <p>
+            {overdueLoans.length} of {totalRecords} items overdue.
+          </p>
+        ) : null}
+        {csvReport && checked.length > 0 ? (
+          <a
+            href={`data:application/octet-stream;charset=utf-8,${encodeURIComponent(csvReport)}`}
+            download={`C2 Fines ${moment().format('YYYY-MM-DD HH-mm')}.csv`}
+            style={{ marginLeft: '32px' }}
+          >
+            Download report for {checked.length} selected entries
+          </a>
+        ) : null}
+      </InlineItems>
       <div style={tableContainerStyles}>
         <table
           className="pure-table pure-table-striped"
