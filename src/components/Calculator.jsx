@@ -160,8 +160,6 @@ const Calculator = () => {
 
   useEffect(generateCSVOutput, [checked]);
 
-  console.log(overdueLoans.map(loan => loan.resourceBarcode));
-
   return (
     <div style={{ textAlign: 'center' }}>
       <UploadFileLabel htmlFor="file">
