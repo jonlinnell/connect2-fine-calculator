@@ -72,7 +72,7 @@ const Calculator = () => {
           ).amount || 0;
 
         return {
-          id: xxh.h32(`${record['Ref no']}-${record['Resource Barcode']}`, 0xbeefbabe).toString(16),
+          id: xxh.h32(`${record['Ref no']}-${record.resourceBarcode}`, 0xbeefbabe).toString(16),
           daysOverdue: moment(record['End date']).businessDiff(moment(record['Checked in'])),
           dailyFine,
           ...record,
@@ -115,7 +115,7 @@ const Calculator = () => {
   const handleFile = useCallback(file => {
     const reader = new FileReader();
     reader.onload = () => {
-      const fileContents = reader.result.replace('Barcode', 'Resource Barcode');
+      const fileContents = reader.result.replace('Barcode', 'resourceBarcode');
 
       parse(
         fileContents,
@@ -159,6 +159,8 @@ const Calculator = () => {
   };
 
   useEffect(generateCSVOutput, [checked]);
+
+  console.log(overdueLoans.map(loan => loan.resourceBarcode));
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -219,7 +221,11 @@ const Calculator = () => {
                   />
                 </td>
                 <td>
-                  <a href={`${c2Instance}bookings/view.aspx?id=${loan['Ref no'].slice(-6)}`}>
+                  <a
+                    href={`${c2Instance}bookings/view.aspx?id=${loan['Ref no'].slice(-6)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {loan['Ref no']}
                   </a>
                 </td>
@@ -229,7 +235,7 @@ const Calculator = () => {
                 <td>{loan.Barcode}</td>
                 <td>{loan.Email}</td>
                 <td>
-                  {loan.Barcode.length > 2 ? <span>({loan['Resource Barcode']})&nbsp;</span> : null}
+                  {loan.resourceBarcode ? <span>({loan.resourceBarcode})&nbsp;</span> : null}
                   {loan.Resource}
                 </td>
                 <td>{formatDate(loan['End date'])}</td>
